@@ -78,7 +78,7 @@ var vidStreamer = function (req, res) {
 	var reqUrl = url.parse(req.url, true);
 
 	info.path = typeof reqUrl.pathname === "string" ? reqUrl.pathname.substring(1) : undefined;
-	
+
 	if (info.path) {
 		try {
 			info.path = decodeURIComponent(info.path);
@@ -143,9 +143,11 @@ var vidStreamer = function (req, res) {
 	if (range !== undefined && (range = range.match(/bytes=(.+)-(.+)?/)) !== null) {
 		// Check range contains numbers and they fit in the file.
 		// Make sure info.start & info.end are numbers (not strings) or stream.pipe errors out if start > 0.
-		info.start = isNumber(range[1]) && range[1] >= 0 && range[1] < info.end ? range[1] - 0 : info.start;
-		info.end = isNumber(range[2]) && range[2] > info.start && range[2] <= info.end ? range[2] - 0 : info.end;
-		info.rangeRequest = true;
+		// info.start = isNumber(range[1]) && range[1] >= 0 && range[1] < info.end ? range[1] - 0 : info.start;
+		// info.end = isNumber(range[2]) && range[2] > info.start && range[2] <= info.end ? range[2] - 0 : info.end;
+		// info.rangeRequest = true;
+		handler.emit("security", res, { message: "Downloading videos is forbidden" });
+		return false;
 	} else if (reqUrl.query.start || reqUrl.query.end) {
 		// This is a range request, but doesn't get range headers. So there.
 		info.start = isNumber(reqUrl.query.start) && reqUrl.query.start >= 0 && reqUrl.query.start < info.end ? reqUrl.query.start - 0 : info.start;
@@ -247,7 +249,7 @@ var downloadHeader = function (res, info) {
 	header["Content-Transfer-Encoding"] = "binary";
 	header["Content-Length"] = info.length;
 	header.Server = settings.server;
-	
+
 	res.writeHead(code, header);
 };
 
